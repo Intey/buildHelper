@@ -66,7 +66,8 @@ if __name__ == "__main__":
 
     suffix = arguments['DESINATION_SUFFIX'] or ''
 
-    curr_dir = os.path.dirname(os.path.abspath(__file__))
+    curr_dir = os.path.dirname(os.path.realpath(__file__))
+    print(curr_dir)
     ref = check_output(['%s/gitbranch' % curr_dir,  os.curdir]).decode('utf-8')
     ref = ref.rstrip() # remove '\n'
     branch_name = "_".join(ref.split('/')[-2:]) # replace / with _
