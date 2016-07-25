@@ -5,3 +5,9 @@ Build project in hardcoded directory, by path:
 <-suffix> gotten from parameter.
 Also provide ability to pass CMAKE or PROJECT defines. Project defines is just
 defines with prepended `projectName_`.
+
+# Requirements
+* python2.7/3.4/3.5
+* bash interpreter(console)
+~~* docopt - python library for generate CLI from doc string in .py file.~~
+docopt included in repo, but i hope, i get time to exclude it.

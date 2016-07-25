@@ -20,7 +20,7 @@ Options:
 
 import os
 import docopt
-from subprocess import call, Popen, check_output
+from subprocess import call, check_output
 from docopt import docopt
 
 build_dir='/home/intey/builds'
@@ -49,8 +49,10 @@ def execute_build(build_dir, project_dir, branch_name, cmake_flags=None, kn_flag
 
         os.chdir(destination)
 
-        print('call cmake', *maybeflags, 'in', destination, 'on', project_dir)
-        call(['cmake', project_dir, *maybeflags])
+        print('call cmake ', " ".join(maybeflags), 'in', destination, 'on', project_dir)
+        cmake_command = ['cmake', project_dir]
+        cmake_command.extend(maybeflags)
+        call(cmake_command)
         call(['make'])
     finally:
         os.chdir(project_dir)
@@ -64,10 +66,8 @@ if __name__ == "__main__":
 
     suffix = arguments['DESINATION_SUFFIX'] or ''
 
-    scripts_dir = os.path.dirname(os.path.abspath(__file__))
-
-
-    ref = check_output(['%s/gitbranch' % scripts_dir, os.curdir]).decode('utf-8')
+    curr_dir = os.path.dirname(os.path.abspath(__file__))
+    ref = check_output(['%s/gitbranch' % curr_dir,  os.curdir]).decode('utf-8')
     ref = ref.rstrip() # remove '\n'
     branch_name = "_".join(ref.split('/')[-2:]) # replace / with _
 
