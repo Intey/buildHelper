@@ -22,6 +22,7 @@ import os
 import docopt
 from subprocess import call, check_output
 from docopt import docopt
+import re
 
 build_dir='/home/intey/builds'
 
@@ -57,6 +58,12 @@ def execute_build(build_dir, project_dir, branch_name, cmake_flags=None, kn_flag
     finally:
         os.chdir(project_dir)
 
+
+def git_branch():
+    line = open('.git/HEAD').readline().decode("utf8")
+    col = re.search('heads/', line).end()
+    return line[col::].strip().replace('/', '_')
+
 if __name__ == "__main__":
     arguments = docopt(__doc__, version='0.1')
 
@@ -67,10 +74,8 @@ if __name__ == "__main__":
     suffix = arguments['DESINATION_SUFFIX'] or ''
 
     curr_dir = os.path.dirname(os.path.realpath(__file__))
-    print(curr_dir)
-    ref = check_output(['%s/gitbranch' % curr_dir,  os.curdir]).decode('utf-8')
-    ref = ref.rstrip() # remove '\n'
-    branch_name = "_".join(ref.split('/')[-2:]) # replace / with _
+
+    branch_name = git_branch()
 
     if suffix != '':
         branch_name = branch_name + '-' + suffix
