@@ -2,20 +2,26 @@
 
 """
 build:
-        build current project in ~/builds/project_name/branch-suffix directory.
-        If suffix not spend - folder don't have "-suffix" part.
+    build current project in ~/builds/project_name/branch-suffix directory.
+    If suffix not spend - folder don't have "-suffix" part.
 
 Usage:
-    build [(-c CMAKE_FLAGS)] [(--suffix DESINATION_SUFFIX)] [(-k KPAPNISO_FLAGS)]
+    build [(-c CMAKE_FLAGS)] [(--suffix DESINATION_SUFFIX)]
+        [(-k KPAPNISO_FLAGS)] [-j PROCS]
     build (-h | --help)
     build (-v | --version)
 
 
 Options:
-    [(-c CMAKE_FLAGS)|(--cmake CMAKE_FLAGS)]    Spend given CMAKE_FLAGS to cmake build process
-    [(--suffix DESINATION_SUFFIX)]                          Append '-DESINATION_SUFFIX' to build dir name after branch
-    -h, --help                                              Show this help text
-    -v, --version                                           Show version
+    [(-c CMAKE_FLAGS)|(--cmake CMAKE_FLAGS)]        Spend given CMAKE_FLAGS to
+        cmake build process. This flags will be prepend with 'CMAKE_'
+    [(-k CMAKE_FLAGS)|(--kpapniso KPAPNISO_FLAGS)]  Spend given KPAPNISO_FLAGS
+        to cmake build process. This flags will be prepended with 'KPAPNISO_'
+    [(--suffix DESINATION_SUFFIX)]                  Append '-DESINATION_SUFFIX'
+        to build dir name after branch
+    [-j PROCS]                                      make -j PROCS
+    -h, --help                                      Show this help text
+    -v, --version                                   Show version
 """
 
 import os
@@ -34,7 +40,8 @@ def prepend_KND(args):
     return map(lambda a: '-DKPAPNISO_%s' % a, args)
 
 
-def execute_build(build_dir, project_dir, branch_name, cmake_flags=None, kn_flags=None):
+def execute_build(build_dir, project_dir, branch_name, cmake_flags=None,
+        kn_flags=None, makeJ=None):
     maybeflags=[]
     if cmake_flags is not None:
         maybeflags.extend(prepend_D(cmake_flags.split(',')))
@@ -54,7 +61,11 @@ def execute_build(build_dir, project_dir, branch_name, cmake_flags=None, kn_flag
         cmake_command = ['cmake', project_dir]
         cmake_command.extend(maybeflags)
         call(cmake_command)
-        call(['make'])
+        if makeJ:
+            call(['make', '-j', makeJ])
+        else:
+            call(['make'])
+
     finally:
         os.chdir(project_dir)
 
@@ -73,6 +84,8 @@ if __name__ == "__main__":
 
     suffix = arguments['DESINATION_SUFFIX'] or ''
 
+    makeJ = arguments['PROCS']
+
     curr_dir = os.path.dirname(os.path.realpath(__file__))
 
     branch_name = git_branch()
@@ -82,4 +95,4 @@ if __name__ == "__main__":
 
     project_dir = os.path.abspath(os.curdir)
 
-    execute_build(build_dir, project_dir, branch_name, cmake_flags, kn_flags)
+    execute_build(build_dir, project_dir, branch_name, cmake_flags, kn_flags, makeJ)
