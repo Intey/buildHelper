@@ -92,7 +92,10 @@ if __name__ == "__main__":
     suffix = arguments['DESINATION_SUFFIX'] or ''
     makeJ = arguments['PROCS']
 
-    build_dir='/home/intey/builds'
+    home = os.environ['HOME']
+
+    build_dir = os.path.join(home, 'builds')
+
     project_dir = os.getcwd()
     branch = git_branch()
     if suffix != '':
