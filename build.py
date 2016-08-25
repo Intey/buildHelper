@@ -70,9 +70,11 @@ def execute_build(destination, project_dir, cmake_flags=None, kn_flags=None,
 
         os.chdir(destination)
 
-        print('call cmake ', " ".join(maybeflags), 'in', destination, 'on', project_dir)
         cmake_command = ['cmake', project_dir]
         cmake_command.extend(maybeflags)
+        print('call cmake:', ' '.join(cmake_command),
+                'in', os.getcwd(),
+                'on', project_dir)
         call(cmake_command)
         if makeJ:
             call(['make', '-j', makeJ])
