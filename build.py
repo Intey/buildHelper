@@ -7,12 +7,16 @@ build:
 
 Usage:
     build [(-c CMAKE_FLAGS)] [(--suffix DESINATION_SUFFIX)]
-        [(-k KPAPNISO_FLAGS)] [-j PROCS]
+        [(-k KPAPNISO_FLAGS)] [(-j PROCS)]
+    build dst [(-b| --bin)]
     build (-h | --help)
     build (-v | --version)
 
+Commands:
+    dst                                             Get destination folder path
 
 Options:
+    [(-b | --bin)]                                  Append 'bin' to destination
     [(-c CMAKE_FLAGS)|(--cmake CMAKE_FLAGS)]        Spend given CMAKE_FLAGS to
         cmake build process. This flags will be prepend with 'CMAKE_'
     [(-k CMAKE_FLAGS)|(--kpapniso KPAPNISO_FLAGS)]  Spend given KPAPNISO_FLAGS
@@ -24,13 +28,27 @@ Options:
     -v, --version                                   Show version
 """
 
+import sys
 import os
 import docopt
 from subprocess import call, check_output
 from docopt import docopt
 import re
 
-build_dir='/home/intey/builds'
+
+def git_branch():
+    line = open('.git/HEAD').readline().decode("utf8")
+    col = re.search('heads/', line).end()
+    return line[col::].strip().replace('/', '_')
+
+
+def gen_destination(build_dir, project_dir, branch_name):
+    project_name = os.path.basename(project_dir)
+    destination = os.path.join(build_dir, project_name, branch_name)
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+    return destination
+
 
 def prepend_D(args):
     return map(lambda a: '-DCMAKE_%s' % a, args)
@@ -40,19 +58,14 @@ def prepend_KND(args):
     return map(lambda a: '-DKPAPNISO_%s' % a, args)
 
 
-def execute_build(build_dir, project_dir, branch_name, cmake_flags=None,
-        kn_flags=None, makeJ=None):
+def execute_build(destination, project_dir, cmake_flags=None, kn_flags=None,
+                  makeJ=None):
     maybeflags=[]
     if cmake_flags is not None:
         maybeflags.extend(prepend_D(cmake_flags.split(',')))
     if kn_flags is not None:
         maybeflags.extend(prepend_KND(kn_flags.split(',')))
 
-    project_name = os.path.basename(project_dir)
-
-    destination = os.path.join(build_dir, project_name, branch_name)
-    if not os.path.exists(destination):
-        os.makedirs(destination)
     try:
 
         os.chdir(destination)
@@ -70,29 +83,25 @@ def execute_build(build_dir, project_dir, branch_name, cmake_flags=None,
         os.chdir(project_dir)
 
 
-def git_branch():
-    line = open('.git/HEAD').readline().decode("utf8")
-    col = re.search('heads/', line).end()
-    return line[col::].strip().replace('/', '_')
-
 if __name__ == "__main__":
     arguments = docopt(__doc__, version='0.1')
-
     cmake_flags = arguments['CMAKE_FLAGS']
-
     kn_flags = arguments['KPAPNISO_FLAGS']
-
     suffix = arguments['DESINATION_SUFFIX'] or ''
-
     makeJ = arguments['PROCS']
 
-    curr_dir = os.path.dirname(os.path.realpath(__file__))
-
-    branch_name = git_branch()
-
+    build_dir='/home/intey/builds'
+    project_dir = os.getcwd()
+    branch = git_branch()
     if suffix != '':
-        branch_name = branch_name + '-' + suffix
+        branch = branch + '-' + suffix
+    destination = gen_destination(build_dir, project_dir, branch)
 
-    project_dir = os.path.abspath(os.curdir)
-
-    execute_build(build_dir, project_dir, branch_name, cmake_flags, kn_flags, makeJ)
+    if arguments['dst']:
+        if arguments['-b']:
+            print(destination+'/bin')
+        else:
+            print(destination)
+        sys.exit(0)
+    else:
+        execute_build(destination, project_dir, cmake_flags, kn_flags, makeJ)
