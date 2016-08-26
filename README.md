@@ -1,13 +1,56 @@
-# Helper to build project
+# Органайзер сборки проекта.
 
-Build project in hardcoded directory, by path:
-<hardcoded>/<currDir>/<gitBranch><-suffix>.
-<-suffix> gotten from parameter.
-Also provide ability to pass CMAKE or PROJECT defines. Project defines is just
-defines with prepended `projectName_`.
+Упрощает сборку проекта из консоли. Появился в связи с необходимостью
+тестировать несколько веток достаточно часто.
 
-# Requirements
+# Использование
+
+С наличием этого скрипта, для сборки текущего состояния проекта(под состоянием
+имею в виду ветку) просто запускаю в каталоге проекта
+
+    build -j 4
+
+Затем, что бы перейти в каталог с бинарниками использую alias
+
+    bcdb='cd `build dst -b`
+
+или, если нужно просто в корень каталога билда
+
+    bcd='cd `build dst`
+
+и сразу приступаю к тестированию.
+
+Для указания параметров CMake используется ключ `-c`. В имени параметра
+опускается префикс `CMAKE_` - он будет добавлен автоматически. Экономия 5 char.
+
+    build -c BUILD_TYPE=Release CXX_COMPILER=clang
+
+в плане CMake эквивалентно:
+
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang
+
+Но мы же пишем крутой проект и у нас есть своя группа параметров проекта.
+Допустим Это группа `KPAPNISO`. Например, с голым CMake приходится писать так
+
+    cmake -DKPAPNISO_BUILD_TESTS=1 .
+
+Скрипт же позволяет через ключ `-k`, как и для CMake указать параметры.
+
+    build -k BUILD_TESTS=1
+
+> Имя группы проекта захардкожено. Меняйте сырцы. Или PR.
+
+# Принцип действия
+
+Учитывает текущее имя проекта, имя ветки - зная это, создает соответствующий
+каталог, где будет собран проект. Сборка подразумевает под собой запуск `cmake`
+и `make`. Проект будет собран в каталоге
+
+    <$HOME>/builds/<currDir>/<gitBranch>-<suffix>
+
+<suffix> передается параметром при желании.
+
+
+# Требования
+
 * python2.7/3.4/3.5
-* ~~docopt - python library for generate CLI from doc string in .py file.~~
-
-docopt included in repo, but i hope, i get time to exclude it.
