@@ -6,8 +6,8 @@ build:
     If suffix not spend - folder don't have "-suffix" part.
 
 Usage:
-    build [(-c CMAKE_FLAGS)] [(--suffix DESINATION_SUFFIX)]
-        [(-k KPAPNISO_FLAGS)] [(-j PROCS)]
+    build [(-c CMAKE_FLAGS)...] [(--suffix DESINATION_SUFFIX)]
+        [(-k KPAPNISO_FLAGS)...] [(-j PROCS)]
     build dst [(-b| --bin)]
     build (-h | --help)
     build (-v | --version)
@@ -62,9 +62,9 @@ def execute_build(destination, project_dir, cmake_flags=None, kn_flags=None,
                   makeJ=None):
     maybeflags=[]
     if cmake_flags is not None:
-        maybeflags.extend(prepend_D(cmake_flags.split(',')))
+        maybeflags.extend(prepend_D(cmake_flags))
     if kn_flags is not None:
-        maybeflags.extend(prepend_KND(kn_flags.split(',')))
+        maybeflags.extend(prepend_KND(kn_flags))
 
     try:
 
