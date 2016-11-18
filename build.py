@@ -54,31 +54,39 @@ def gen_destination(build_dir, project_dir, branch_name):
     return destination
 
 
-def prepend_D(args):
-    return map(lambda a: '-DCMAKE_%s' % a, args)
+def prepend(group, args):
+    return map(lambda arg: '-D%s_%s' % (group, arg), args)
 
 
-def prepend_KND(args):
-    return map(lambda a: '-DKPAPNISO_%s' % a, args)
-
-
-def execute_build(destination, project_dir, cmake_flags=None, kn_flags=None,
+def execute_build(destination, project_dir, cmake_flags=None, project_flags=None,
                   makeJ=None):
+    group = None
+    try:
+        group = parser.get('COMMON','project_group')
+    except:
+        print("for project keys, set 'project_group' in ~/.build.cfg")
+        print("group flags was not be executed")
+
     maybeflags=[]
     if cmake_flags is not None:
-        maybeflags.extend(prepend_D(cmake_flags.split(',')))
-    if kn_flags is not None:
-        maybeflags.extend(prepend_KND(kn_flags.split(',')))
-
+        # flags = parser.get('COMMON','cmake_flags')
+        maybeflags.extend(prepend("CMAKE", cmake_flags))
+    if group is not None:
+        maybeflags.extend(prepend(group, project_flags))
+        try:
+            flags = parser.get('COMMON', 'project_flags').split()
+        except:
+            pass  # skip unexist flags
+        maybeflags.extend(prepend(group, flags))
     try:
-
         os.chdir(destination)
-
         cmake_command = ['cmake', project_dir]
         cmake_command.extend(maybeflags)
         print('call cmake:', ' '.join(cmake_command),
-                'in', os.getcwd(),
-                'on', project_dir)
+              'in', os.getcwd(),
+              'on', project_dir)
+        print('=============================================================')
+
         call(cmake_command)
         if makeJ:
             call(['make', '-j', makeJ])
