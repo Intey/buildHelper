@@ -6,14 +6,17 @@ build:
     If suffix not spend - folder don't have "-suffix" part.
 
 Usage:
-    build [(-c CMAKE_FLAGS)] [(--suffix DESINATION_SUFFIX)]
-        [(-k KPAPNISO_FLAGS)] [(-j PROCS)]
+    build [(-c CMAKE_FLAGS)...] [(--suffix DESINATION_SUFFIX)]
+        [(-k KPAPNISO_FLAGS)...] [(-j PROCS)]
     build dst [(-b| --bin)]
+    build config
     build (-h | --help)
     build (-v | --version)
 
 Commands:
     dst                                             Get destination folder path
+    config                                          Configure build toolset.
+        This changes .build.cfg file in project main dir
 
 Options:
     [(-b | --bin)]                                  Append 'bin' to destination
@@ -31,9 +34,10 @@ Options:
 import sys
 import os
 import docopt
-from subprocess import call, check_output
+from subprocess import call
 from docopt import docopt
 import re
+from configparser import ConfigParser
 
 
 def git_branch():
@@ -92,7 +96,12 @@ if __name__ == "__main__":
     suffix = arguments['DESINATION_SUFFIX'] or ''
     makeJ = arguments['PROCS']
 
+    parser = ConfigParser()
+
     home = os.environ['HOME']
+
+    config_path = os.path.join(home, '.build.cfg')
+    parser.read(config_path)
 
     build_dir = os.path.join(home, 'builds')
 
@@ -108,5 +117,10 @@ if __name__ == "__main__":
         else:
             print(destination)
         sys.exit(0)
+
+    if arguments['config']:
+        call([parser.get('COMMON', 'editor'), config_path])
+        sys.exit(0)
+
     else:
         execute_build(destination, project_dir, cmake_flags, kn_flags, makeJ)
