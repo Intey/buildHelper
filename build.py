@@ -37,7 +37,7 @@ import re
 
 
 def git_branch():
-    line = open('.git/HEAD').readline().decode("utf8")
+    line = open('.git/HEAD').readline()
     col = re.search('heads/', line).end()
     return line[col::].strip().replace('/', '_')
 
