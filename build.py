@@ -37,7 +37,7 @@ import docopt
 from subprocess import call
 from docopt import docopt
 import re
-from configparser import ConfigParser
+import config
 
 
 def git_branch():
@@ -60,24 +60,20 @@ def prepend(group, args):
 
 def execute_build(destination, project_dir, cmake_flags=None, project_flags=None,
                   makeJ=None):
-    group = None
-    try:
-        group = parser.get('COMMON','project_group')
-    except:
-        print("for project keys, set 'project_group' in ~/.build.cfg")
-        print("group flags was not be executed")
 
     maybeflags=[]
+
+    cmake_flags = cfg.get('cmake_flags')
     if cmake_flags is not None:
-        # flags = parser.get('COMMON','cmake_flags')
+        cmake_flags = cmake_flags.split()
         maybeflags.extend(prepend("CMAKE", cmake_flags))
+
+    group = cfg.get('project_group')
     if group is not None:
-        maybeflags.extend(prepend(group, project_flags))
-        try:
-            flags = parser.get('COMMON', 'project_flags').split()
-        except:
-            pass  # skip unexist flags
-        maybeflags.extend(prepend(group, flags))
+        project_flags = cfg.get('project_flags').split()
+        if project_flags is not None:
+            project_flags = project_flags
+            maybeflags.extend(prepend(group, project_flags))
     try:
         os.chdir(destination)
         cmake_command = ['cmake', project_dir]
@@ -98,20 +94,20 @@ def execute_build(destination, project_dir, cmake_flags=None, project_flags=None
 
 
 if __name__ == "__main__":
+
     arguments = docopt(__doc__, version='0.1')
+
+    cfg = config.Config()
+
     cmake_flags = arguments['CMAKE_FLAGS']
     kn_flags = arguments['KPAPNISO_FLAGS']
     suffix = arguments['DESINATION_SUFFIX'] or ''
     makeJ = arguments['PROCS']
 
-    parser = ConfigParser()
-
     home = os.environ['HOME']
 
-    config_path = os.path.join(home, '.build.cfg')
-    parser.read(config_path)
+    build_dir = os.path.join(home, cfg.get('build', 'builds'))
 
-    build_dir = os.path.join(home, 'builds')
 
     project_dir = os.getcwd()
     branch = git_branch()
@@ -127,7 +123,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     if arguments['config']:
-        call([parser.get('COMMON', 'editor'), config_path])
+        call([cfg.get('editor', 'vim'), config_path])
         sys.exit(0)
 
     else:
