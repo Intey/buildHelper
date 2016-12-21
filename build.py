@@ -74,20 +74,29 @@ def execute_build(destination, project_dir, cmake_flags=None, project_flags=None
         if project_flags is not None:
             project_flags = project_flags
             maybeflags.extend(prepend(group, project_flags))
+
+    cmake_command = ['cmake',  project_dir]
+
+    generator = cfg.get('generator')
+    genArgs = []
+    if generator is not None:
+        genArgs = ['-G', generator]
+
+    cmake_command.extend(genArgs)
+    cmake_command.extend(maybeflags)
+    print('call cmake:', ' '.join(cmake_command),
+          'in', os.getcwd(),
+          'on', project_dir)
+    print('=============================================================')
+
     try:
         os.chdir(destination)
-        cmake_command = ['cmake', project_dir]
-        cmake_command.extend(maybeflags)
-        print('call cmake:', ' '.join(cmake_command),
-              'in', os.getcwd(),
-              'on', project_dir)
-        print('=============================================================')
-
         call(cmake_command)
+        make_command = cfg.get('make', 'make')
         if makeJ:
-            call(['make', '-j', makeJ])
+            call([make_command, '-j', makeJ])
         else:
-            call(['make'])
+            call([make_command])
 
     finally:
         os.chdir(project_dir)
